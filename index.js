@@ -16,7 +16,8 @@ const port = 3900
 app.use(cors())
 
 //Convertir body a objeto js
-app.use(express.json())
+app.use(express.json()) //recibir datos con content-type aplication/json
+app.use(express.urlencoded({extended: true})) //from-urlencoded
 
 //RUTAS
 const routesArticle = require("./routes/articleRoute")
