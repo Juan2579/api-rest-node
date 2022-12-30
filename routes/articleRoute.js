@@ -10,10 +10,4 @@ router.get("/curso", ArticuloController.curso)
 //Ruta util
 router.post("/create", ArticuloController.create)
 
-
-
-
-
-
-
 module.exports = router

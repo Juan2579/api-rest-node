@@ -1,4 +1,5 @@
 const validator = require("validator")
+const Article = require("../models/ArticleModel")
 
 const test = (req, res) => {
   return res.status(200).json({
@@ -22,7 +23,7 @@ const curso = (req, res) => {
 
 const create = (req, res) => {
   
-  //Recgoer parametros por post a guardar
+  //Recoger parametros por post a guardar
   const parameters = req.body
 
   //Validar datos
@@ -42,15 +43,27 @@ const create = (req, res) => {
   }
 
   //Crear el objeto a guardar
+  const article = new Article(req.body)//pasar parametros automaticamente
 
   //Asignar valores a objeto basado en el modelo (manual o automatico)
-
+  //article.title = parameters.title forma manual
+  
   //Guardar el articulo en la base de datos
+  article.save((error, articleSaved) => {
 
-  //Devolver resultado
-  return res.status(200).json({
-    mensaje: "Accion de crear",
-    parameters
+    if(error || !articleSaved){
+      return res.status(400).json({
+        status: "error",
+        mensaje: "No se ha guardado el articulo"
+      })
+    }
+
+    //Devolver resultado
+    return res.status(200).json({
+      status: "success",
+      mensaje: "Se ha guardado el articulo",
+      article: articleSaved
+    })
   })
 }
 
