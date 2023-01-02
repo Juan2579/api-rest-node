@@ -1,4 +1,4 @@
-const validator = require("validator")
+const {validateArticle} = require("../helpers/validate")
 const Article = require("../models/ArticleModel")
 
 const test = (req, res) => {
@@ -28,13 +28,7 @@ const create = (req, res) => {
 
   //Validar datos
   try {
-    const validateTitle = !validator.isEmpty(parameters.title) && validator.isLength(parameters.title, {min: 5, max: undefined})
-    const validateContent = !validator.isEmpty(parameters.content)
-
-    if(!validateTitle || !validateContent){
-      throw new Error("No se ha validado la informacion !!")
-    }
-    
+    validateArticle(parameters)
   } catch (error) {
     return res.status(400).json({
       status: "Error",
@@ -123,6 +117,86 @@ const getOneArticle = (req, res) => {
   })
 }
 
+const deleteArticle = (req, res) => {
+  
+  const idArticle = req.params.id
+
+  Article.findOneAndDelete({_id: idArticle}, (error, articleDeleted) => {
+    if(error || !articleDeleted){
+      return res.status(400).json({
+        status: "error",
+        mensaje: "Error al borrar"
+      })
+    }
+
+    //Devolver resultado
+    return res.status(200).json({
+      status: "success",
+      mensaje: "Se ha borrado el articulo",
+      article: articleDeleted
+    })
+  })
+}
+
+const editArticle = (req, res) => {
+
+  //Recoger id articulo a editar
+  const idArticle = req.params.id
+
+  //Recoger datos del body
+  const parameters = req.body
+
+  //Validar datos
+  try{
+    validateArticle(parameters)
+  } catch (error) {
+    return res.status(400).json({
+      status: "Error",
+      mensaje: "Faltan datos por enviar"
+    })
+  }
+
+  //Buscar y actualizar articulo
+  Article.findOneAndUpdate({_id: idArticle}, parameters, {new: true}, (error, articleUpdated) => {
+
+    if(error || !articleUpdated){
+      return res.status(400).json({
+        status: "error",
+        mensaje: "Error al editar"
+      })
+    }
+    
+    //Devolver respuesta
+    return res.status(200).json({
+      status: "success",
+      mensaje: "El articulo ha sido editado",
+      articulo: articleUpdated
+    })
+  })
+}
+
+const uploadImage = (req, res) => {
+
+  //Configurar multer
+
+  //Recoger el fichero de imagen subido
+
+  //Nombre del archivo
+
+  //Extension del archivo
+
+  //Comprobar extension correcta
+
+  // SI todo va bien, actualizar el articulo
+
+  //Devolver respuesta
+
+  return res.status(200).json({
+    status: "success",
+    mensaje: "Ruta de subir archivos",
+  })
+}
+
 module.exports = {
-  test, curso, create, getArticles, getOneArticle
+  test, curso, create, getArticles, getOneArticle, deleteArticle, editArticle, uploadImage
 }
