@@ -1,3 +1,4 @@
+const fs = require('fs');
 const {validateArticle} = require("../helpers/validate")
 const Article = require("../models/ArticleModel")
 
@@ -179,22 +180,47 @@ const uploadImage = (req, res) => {
 
   //Configurar multer
 
-  //Recoger el fichero de imagen subido
+  //Validar que si se envió un archivo
+  if(!req.file && !req.files){
+    return res.status(400).json({
+      status: "error",
+      mensaje: "Peticion incompleta"
+    })
+  }
 
   //Nombre del archivo
+  const fileName = req.file.originalname
 
   //Extension del archivo
+  const fileNameSplit = fileName.split(".")
+  const fileExtension = fileNameSplit[1]
 
   //Comprobar extension correcta
+  if(fileExtension !== "png" 
+      && fileExtension !== "jpg" 
+      && fileExtension !== "jpeg" 
+      && fileExtension !== "gif"){
+    //Borrar archivo y dar respuesta
+    fs.unlink(req.file.path, (error) => {
+      return res.status(400).json({
+        status: "error",
+        mensaje: "Imagen invalida"
+      })
+    })
+  }else{
+    // SI todo va bien, actualizar el articulo
+  
+    //Devolver respuesta
+  
+    return res.status(200).json({
+      status: "success",
+      mensaje: "Ruta de subir archivos",
+      fileNameSplit,
+      fileExtension,
+      file: req.file
+    })
+  }
 
-  // SI todo va bien, actualizar el articulo
-
-  //Devolver respuesta
-
-  return res.status(200).json({
-    status: "success",
-    mensaje: "Ruta de subir archivos",
-  })
 }
 
 module.exports = {
