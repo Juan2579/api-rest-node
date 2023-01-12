@@ -1,26 +1,7 @@
 const fs = require('fs');
+const path = require("path")
 const {validateArticle} = require("../helpers/validate")
 const Article = require("../models/ArticleModel")
-
-const test = (req, res) => {
-  return res.status(200).json({
-    mensaje: "Soy una accion de prueba en mi controlador de articulos"
-  })
-}
-
-const curso = (req, res) => {
-  console.log("Se ha ejecutado el endpoint probando")
-  return res.status(200).json([
-    {
-      curso: "Master en react",
-      autor: "Victor Robles WEB"
-    },
-    {
-      curso: "Master en react",
-      autor: "Victor Robles WEB"
-    }
-  ])
-}
 
 const create = (req, res) => {
   
@@ -209,20 +190,79 @@ const uploadImage = (req, res) => {
     })
   }else{
     // SI todo va bien, actualizar el articulo
-  
-    //Devolver respuesta
-  
-    return res.status(200).json({
-      status: "success",
-      mensaje: "Ruta de subir archivos",
-      fileNameSplit,
-      fileExtension,
-      file: req.file
+
+    //Recoger id articulo a editar
+    const idArticle = req.params.id
+
+    //Buscar y actualizar articulo
+    Article.findOneAndUpdate({_id: idArticle}, {image: req.file.filename}, {new: true}, (error, articleUpdated) => {
+
+      if(error || !articleUpdated){
+        return res.status(400).json({
+          status: "error",
+          mensaje: "Error al editar"
+        })
+      }
+      
+      //Devolver respuesta
+      return res.status(200).json({
+        status: "success",
+        mensaje: "El articulo ha sido editado",
+        articulo: articleUpdated,
+        file: req.file
+      })
     })
   }
+}
+
+const getImage = (req,res) => {
+  const file = req.params.file
+  const routeFile = `./images/articles/${file}`
+
+  fs.stat(routeFile, (error, exist) => {
+    if(exist){
+      return res.sendFile(path.resolve(routeFile))
+    }else{
+      return res.status(404).json({
+        status: "error",
+        mensaje: "La imagen no existe",
+        file,
+        routeFile
+      })
+    }
+  })
+}
+
+const getQuerySearch = (req, res) => {
+  //Sacar el string de busqueda
+  const query = req.params.query
+  //Find OR
+  Article.find({
+    "$or": [
+      {"title": {"$regex": query, "$options": "i"}},
+      {"content": {"$regex": query, "$options": "i"}},
+    ]
+    //Orden
+  }).sort({date: -1})
+  //Ejecutar consulta
+    .exec((error, articlesFound) => {
+      if(error || !articlesFound || articlesFound.length === 0){
+        return res.status(404).json({
+          status: "error",
+          mensaje: "No se han encontrado articulos"
+        })
+      }
+
+      //Devolver resultado
+      return res.status(200).json({
+        status: "success",
+        articlesFound
+      })
+    })
+
 
 }
 
 module.exports = {
-  test, curso, create, getArticles, getOneArticle, deleteArticle, editArticle, uploadImage
+  create, getArticles, getOneArticle, deleteArticle, editArticle, uploadImage, getImage, getQuerySearch
 }
